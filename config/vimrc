@@ -1,0 +1,192 @@
+# Enhanced Vim configuration for development
+# Copy to ~/.vimrc or source in your existing config
+
+" Enable modern Vim features
+set nocompatible
+filetype plugin indent on
+syntax enable
+
+" Basic settings
+set number                     " Show line numbers
+set relativenumber            " Show relative line numbers
+set ruler                     " Show cursor position
+set showcmd                   " Show command in status line
+set wildmenu                  " Enhanced command-line completion
+set wildmode=list:longest     " Complete longest common string
+set laststatus=2              " Always show status line
+set backspace=indent,eol,start " Allow backspace over everything
+
+" Search settings
+set hlsearch                  " Highlight search results
+set incsearch                 " Incremental search
+set ignorecase                " Case insensitive searching
+set smartcase                 " Case sensitive if uppercase letters present
+
+" Indentation
+set autoindent                " Copy indent from current line
+set smartindent               " Smart autoindenting
+set expandtab                 " Use spaces instead of tabs
+set tabstop=4                 " Number of spaces for tab
+set shiftwidth=4              " Number of spaces for autoindent
+set softtabstop=4             " Number of spaces for tab in insert mode
+
+" File type specific indentation
+autocmd FileType html,css,javascript,typescript,json,yaml,yml setlocal tabstop=2 shiftwidth=2 softtabstop=2
+autocmd FileType python setlocal tabstop=4 shiftwidth=4 softtabstop=4
+autocmd FileType go setlocal tabstop=4 shiftwidth=4 softtabstop=4 noexpandtab
+autocmd FileType rust setlocal tabstop=4 shiftwidth=4 softtabstop=4
+autocmd FileType c,cpp setlocal tabstop=4 shiftwidth=4 softtabstop=4
+
+" Visual settings
+set background=dark           " Dark background
+set cursorline               " Highlight current line
+set colorcolumn=80,120       " Show column guides
+set scrolloff=5              " Keep 5 lines above/below cursor
+set sidescrolloff=5          " Keep 5 columns left/right of cursor
+
+" Performance
+set lazyredraw               " Don't redraw during macros
+set updatetime=300           " Faster completion
+set timeoutlen=500           " Faster key sequence completion
+
+" Backup and swap files
+set nobackup                 " Don't create backup files
+set noswapfile               " Don't create swap files
+set undofile                 " Persistent undo
+set undodir=~/.vim/undo      " Undo directory
+
+" Create undo directory if it doesn't exist
+if !isdirectory($HOME."/.vim/undo")
+    call mkdir($HOME."/.vim/undo", "p")
+endif
+
+" Key mappings
+let mapleader = " "          " Set leader key to space
+
+" Clear search highlighting
+nnoremap <C-l> :nohlsearch<CR><C-l>
+
+" Better window navigation
+nnoremap <C-h> <C-w>h
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l
+
+" Easy window resizing
+nnoremap <C-Up> :resize +2<CR>
+nnoremap <C-Down> :resize -2<CR>
+nnoremap <C-Left> :vertical resize -2<CR>
+nnoremap <C-Right> :vertical resize +2<CR>
+
+" Quick save and quit
+nnoremap <leader>w :w<CR>
+nnoremap <leader>q :q<CR>
+nnoremap <leader>x :wq<CR>
+
+" Buffer navigation
+nnoremap <leader>b :buffers<CR>:buffer<Space>
+nnoremap <leader>n :bnext<CR>
+nnoremap <leader>p :bprev<CR>
+nnoremap <leader>d :bdelete<CR>
+
+" Tab navigation
+nnoremap <leader>t :tabnew<CR>
+nnoremap <leader>tc :tabclose<CR>
+nnoremap <leader>tn :tabnext<CR>
+nnoremap <leader>tp :tabprev<CR>
+
+" File operations
+nnoremap <leader>e :edit<Space>
+nnoremap <leader>f :find<Space>
+
+" Quick edit vimrc
+nnoremap <leader>ev :edit $MYVIMRC<CR>
+nnoremap <leader>sv :source $MYVIMRC<CR>
+
+" Toggle line numbers
+nnoremap <leader>l :set number!<CR>
+
+" Toggle paste mode
+nnoremap <leader>pp :set paste!<CR>
+
+" Move lines up/down
+nnoremap <A-j> :m .+1<CR>==
+nnoremap <A-k> :m .-2<CR>==
+inoremap <A-j> <Esc>:m .+1<CR>==gi
+inoremap <A-k> <Esc>:m .-2<CR>==gi
+vnoremap <A-j> :m '>+1<CR>gv=gv
+vnoremap <A-k> :m '<-2<CR>gv=gv
+
+" Better indenting in visual mode
+vnoremap < <gv
+vnoremap > >gv
+
+" Status line configuration
+set statusline=%f                           " Path to file
+set statusline+=%m                          " Modified flag
+set statusline+=%r                          " Readonly flag
+set statusline+=%h                          " Help flag
+set statusline+=%w                          " Preview flag
+set statusline+=%=                          " Switch to right side
+set statusline+=%l,%c                       " Line and column
+set statusline+=\ %p%%                      " Percentage through file
+set statusline+=\ [%{&fileformat}]         " File format
+set statusline+=\ %{&fileencoding?&fileencoding:&encoding} " Encoding
+set statusline+=\ %y                        " File type
+
+" Auto-pairs for brackets and quotes
+inoremap ( ()<Left>
+inoremap [ []<Left>
+inoremap { {}<Left>
+inoremap " ""<Left>
+inoremap ' ''<Left>
+
+" Color scheme (will use default if colorscheme not available)
+silent! colorscheme desert
+
+" Language-specific settings
+" Python
+autocmd FileType python setlocal textwidth=88
+autocmd FileType python setlocal formatoptions-=t
+
+" JavaScript/TypeScript
+autocmd FileType javascript,typescript setlocal textwidth=100
+
+" Go
+autocmd FileType go setlocal noexpandtab
+
+" Markdown
+autocmd FileType markdown setlocal textwidth=80
+autocmd FileType markdown setlocal wrap
+
+" Git commit messages
+autocmd FileType gitcommit setlocal textwidth=72
+autocmd FileType gitcommit setlocal colorcolumn=50,72
+
+" Automatically remove trailing whitespace on save
+autocmd BufWritePre * :%s/\s\+$//e
+
+" Remember cursor position
+autocmd BufReadPost *
+    \ if line("'\"") >= 1 && line("'\"") <= line("$") && &ft !~# 'commit'
+    \ |   exe "normal! g`\""
+    \ | endif
+
+" File type detection
+autocmd BufRead,BufNewFile *.md set filetype=markdown
+autocmd BufRead,BufNewFile *.yml,*.yaml set filetype=yaml
+autocmd BufRead,BufNewFile *.json set filetype=json
+autocmd BufRead,BufNewFile Dockerfile* set filetype=dockerfile
+autocmd BufRead,BufNewFile *.nix set filetype=nix
+
+" Useful commands
+command! W w                 " Save file (typo fix)
+command! Q q                 " Quit (typo fix)
+command! Wq wq               " Save and quit (typo fix)
+command! WQ wq               " Save and quit (typo fix)
+
+" Reload .vimrc when it's saved
+autocmd! BufWritePost $MYVIMRC source $MYVIMRC
+
+" Welcome message
+echo "Vim development environment loaded! Leader key: <Space>"

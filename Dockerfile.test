@@ -1,0 +1,26 @@
+FROM ubuntu:22.04
+
+# Install basic dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    sudo \
+    xz-utils \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a test user
+RUN useradd -m -s /bin/bash testuser && \
+    echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+USER testuser
+WORKDIR /home/testuser
+
+# Copy the nix-system configuration
+COPY --chown=testuser:testuser . ./nix-system/
+
+# Set up environment
+ENV USER=testuser
+ENV HOME=/home/testuser
+
+WORKDIR /home/testuser/nix-system

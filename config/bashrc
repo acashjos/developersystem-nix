@@ -1,0 +1,266 @@
+# Enhanced .bashrc for development environments
+# Source this file or copy its contents to your ~/.bashrc
+
+# If not running interactively, don't do anything
+[[ $- != *i* ]] && return
+
+# History configuration
+export HISTSIZE=10000
+export HISTFILESIZE=20000
+export HISTCONTROL=ignoredups:erasedups
+shopt -s histappend
+shopt -s cmdhist
+
+# Update history after each command
+PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+
+# Better tab completion
+bind "set completion-ignore-case on"
+bind "set show-all-if-ambiguous on"
+bind "set menu-complete-display-prefix on"
+
+# Enable globstar
+shopt -s globstar
+
+# Auto-correct minor spelling errors in cd
+shopt -s cdspell
+
+# Notify of job completion immediately
+set -o notify
+
+# Environment variables
+export EDITOR=${EDITOR:-vim}
+export VISUAL=${VISUAL:-vim}
+export BROWSER=${BROWSER:-firefox}
+export PAGER=less
+export TERM=xterm-256color
+
+# Language and development environment variables
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+
+# Development paths
+export GOPATH="$HOME/go"
+export CARGO_HOME="$HOME/.cargo"
+export RUSTUP_HOME="$HOME/.rustup"
+export PIPX_HOME="$HOME/.local/pipx"
+export POETRY_HOME="$HOME/.local/poetry"
+
+# Add local binaries to PATH
+export PATH="$HOME/.local/bin:$HOME/bin:$GOPATH/bin:$CARGO_HOME/bin:$PATH"
+
+# Colored output
+export CLICOLOR=1
+export LSCOLORS=GxFxCxDxBxegedabagaced
+
+# Less configuration
+export LESS='-R -S -M -I -x4'
+export LESSHISTFILE=-
+
+# Development aliases
+alias ll='eza -la'
+alias la='eza -la'
+alias ls='eza'
+alias l='eza -l'
+alias cat='bat'
+alias find='fd'
+alias grep='rg'
+alias top='htop'
+alias ps='ps aux'
+alias df='df -h'
+alias du='du -h'
+alias free='free -h'
+
+# Navigation aliases
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias ~='cd ~'
+alias -- -='cd -'
+
+# Git aliases
+alias g='git'
+alias ga='git add'
+alias gaa='git add --all'
+alias gb='git branch'
+alias gba='git branch -a'
+alias gc='git commit -v'
+alias gca='git commit -v -a'
+alias gcam='git commit -a -m'
+alias gcm='git commit -m'
+alias gco='git checkout'
+alias gd='git diff'
+alias gl='git pull'
+alias glog='git log --oneline --decorate --graph'
+alias gp='git push'
+alias gst='git status'
+alias gsta='git stash'
+alias gstp='git stash pop'
+
+# Docker aliases
+alias d='docker'
+alias dc='docker-compose'
+alias dps='docker ps'
+alias dpsa='docker ps -a'
+alias di='docker images'
+alias drm='docker rm'
+alias drmi='docker rmi'
+alias dexec='docker exec -it'
+
+# Kubernetes aliases (if kubectl is available)
+if command -v kubectl >/dev/null 2>&1; then
+    alias k='kubectl'
+    alias kgp='kubectl get pods'
+    alias kgs='kubectl get services'
+    alias kgd='kubectl get deployments'
+    alias kdp='kubectl describe pod'
+    alias kds='kubectl describe service'
+    alias kdd='kubectl describe deployment'
+fi
+
+# Language-specific aliases
+alias py='python3'
+alias pip='pip3'
+alias ipy='ipython'
+alias serve='python3 -m http.server'
+alias json='python3 -m json.tool'
+
+# Node.js aliases
+alias ni='npm install'
+alias nig='npm install -g'
+alias nis='npm install --save'
+alias nid='npm install --save-dev'
+alias nr='npm run'
+alias nrs='npm run start'
+alias nrd='npm run dev'
+alias nrb='npm run build'
+alias nrt='npm run test'
+
+# Yarn aliases
+alias yi='yarn install'
+alias ya='yarn add'
+alias yad='yarn add --dev'
+alias yr='yarn run'
+alias ys='yarn start'
+alias yd='yarn dev'
+alias yb='yarn build'
+alias yt='yarn test'
+
+# Rust aliases
+alias cb='cargo build'
+alias cr='cargo run'
+alias ct='cargo test'
+alias cc='cargo check'
+alias cf='cargo fmt'
+alias ccl='cargo clippy'
+
+# Go aliases
+alias gob='go build'
+alias gor='go run'
+alias got='go test'
+alias gof='go fmt'
+alias gom='go mod'
+
+# System aliases
+alias ports='netstat -tulanp'
+alias meminfo='free -m -l -t'
+alias psmem='ps auxf | sort -nr -k 4'
+alias pscpu='ps auxf | sort -nr -k 3'
+alias cpuinfo='lscpu'
+alias gpumeminfo='grep -i --color memory /proc/meminfo'
+
+# Nix aliases
+alias nix-search='nix search nixpkgs'
+alias nix-shell='nix develop'
+alias nix-update='nix flake update'
+alias nix-clean='nix-collect-garbage -d'
+alias nix-rebuild='sudo nixos-rebuild switch'
+
+# Utility functions
+mkcd() {
+    mkdir -p "$1" && cd "$1"
+}
+
+extract() {
+    if [ -f "$1" ]; then
+        case "$1" in
+            *.tar.bz2)   tar xjf "$1"     ;;
+            *.tar.gz)    tar xzf "$1"     ;;
+            *.bz2)       bunzip2 "$1"     ;;
+            *.rar)       unrar x "$1"     ;;
+            *.gz)        gunzip "$1"      ;;
+            *.tar)       tar xf "$1"      ;;
+            *.tbz2)      tar xjf "$1"     ;;
+            *.tgz)       tar xzf "$1"     ;;
+            *.zip)       unzip "$1"       ;;
+            *.Z)         uncompress "$1"  ;;
+            *.7z)        7z x "$1"        ;;
+            *)           echo "'$1' cannot be extracted via extract()" ;;
+        esac
+    else
+        echo "'$1' is not a valid file"
+    fi
+}
+
+# Find and kill process by name
+killp() {
+    ps aux | grep -v grep | grep "$1" | awk '{print $2}' | xargs kill -9
+}
+
+# Quick directory navigation
+up() {
+    local d=""
+    local limit="$1"
+    
+    # Default to limit of 1
+    if [ -z "$limit" ] || [ "$limit" -le 0 ]; then
+        limit=1
+    fi
+    
+    for ((i=1; i<=limit; i++)); do
+        d="../$d"
+    done
+    
+    # perform cd. Show error if cd fails
+    if ! cd "$d"; then
+        echo "Couldn't go up $limit dirs.";
+    fi
+}
+
+# Better ls with colors
+if command -v eza >/dev/null 2>&1; then
+    alias ls='eza --color=auto'
+    alias ll='eza -la --color=auto'
+    alias la='eza -la --color=auto'
+elif command -v ls >/dev/null 2>&1; then
+    alias ls='ls --color=auto'
+    alias ll='ls -la --color=auto'
+    alias la='ls -la --color=auto'
+fi
+
+# Load direnv if available
+if command -v direnv >/dev/null 2>&1; then
+    eval "$(direnv hook bash)"
+fi
+
+# Load nix if available
+if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then
+    source ~/.nix-profile/etc/profile.d/nix.sh
+fi
+
+# Custom prompt with git branch
+parse_git_branch() {
+    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+}
+
+# Set a colorful prompt
+if [ "$TERM" != "dumb" ]; then
+    export PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[33m\]$(parse_git_branch)\[\033[00m\]\$ '
+else
+    export PS1='\u@\h:\w\$ '
+fi
+
+# Welcome message
+echo "🚀 Development environment loaded!"
+echo "💡 Type 'nix develop' to enter project-specific environments"
+echo "📂 Available environments in ./environments/"
